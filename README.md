@@ -1,23 +1,11 @@
-# CPBL Baseball Frontend
+# cpbl-baseball
 
-前端網址：`https://baseball.leokuo.com`
+CPBL Live Board 前端。
 
-這一版保留原本 CPBL Live Board 的 HTML/CSS/動畫/操作，唯一有意修改的是 API 來源：
+正式網址：`https://baseball.leokuo.com`
 
-`https://api.leokuo.com/cpbl/...`
+GitHub Pages：Branch `main`，Folder `/(root)`。
 
-## GitHub Pages
+版面、CSS、動畫與操作保留，只把 API 統一改到 `https://api.leokuo.com/cpbl`。
 
-將此資料夾內容直接放在 `cpbl-baseball` repository 根目錄：
-
-- `index.html`
-- `CNAME`
-- `README.md`
-
-GitHub → Settings → Pages：
-
-- Source: Deploy from a branch
-- Branch: `main`
-- Folder: `/(root)`
-
-Custom domain: `baseball.leokuo.com`
+吉祥物圖片如有，放在 `mascots/`，檔名：AAA011.png、AEO011.png、AKP011.png、ADD011.png、AJL011.png、ACN011.png。
