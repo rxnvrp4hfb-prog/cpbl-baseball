@@ -1,11 +1,6 @@
-import { copyFileSync, mkdirSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { accessSync } from "node:fs";
 
-const here = dirname(fileURLToPath(import.meta.url));
-const publicDir = join(here, "public");
-const baseballDir = join(publicDir, "baseball");
+accessSync("public/index.html");
+accessSync("functions/api/[[path]].js");
 
-mkdirSync(baseballDir, { recursive: true });
-copyFileSync(join(here, "..", "index.html"), join(baseballDir, "index.html"));
-copyFileSync(join(here, "..", "index.html"), join(publicDir, "index.html"));
+console.log("Cloudflare Pages files are ready.");

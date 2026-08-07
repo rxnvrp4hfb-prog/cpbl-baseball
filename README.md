@@ -23,21 +23,16 @@ CPBL_PROXY_BASE_URL=https://your-proxy.example.com
 
 ## Deploy
 
-Cloudflare Pages GitHub settings:
+Cloudflare Pages GitHub settings for this zip:
 
 ```text
-Root directory: cloudflare-pages
+Root directory: leave blank
 Build command: npm run build
 Build output directory: public
 ```
 
-Do not deploy only the root `index.html`, because Cloudflare will not deploy the `functions/` API routes.
-
-```bash
-cd cpbl-live-dashboard/cloudflare-pages
-npm install
-npm run deploy
-```
+The GitHub repo root must contain `functions/`, `public/`, `package.json`, and `build.js`.
+Do not deploy only `public/` or only `index.html`, because Cloudflare will not deploy the `functions/` API routes.
 
 Then add `baseball.leokuo.com` as the Cloudflare Pages custom domain.
 

@@ -1,10 +1,6 @@
 {
   "type": "module",
   "scripts": {
-    "build": "node build.js",
-    "deploy": "npm run build && wrangler pages deploy public --project-name cpbl-live-dashboard"
-  },
-  "devDependencies": {
-    "wrangler": "^4.28.1"
+    "build": "node build.js"
   }
 }
