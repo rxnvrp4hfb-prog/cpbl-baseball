@@ -36,8 +36,12 @@
 <div id="dateModal" class="modal" onclick="closeDatePicker(event)"><div class="calendar" onclick="event.stopPropagation()"><div class="cal-head"><button class="icon-btn" onclick="calShiftMonth(-1)"><span class="ui-ico prev"></span></button><div id="calTitle" class="cal-title">----</div><button class="icon-btn" onclick="calShiftMonth(1)"><span class="ui-ico next"></span></button></div><div class="cal-grid" id="calGrid"></div></div></div>
 <script>
 const $=s=>document.querySelector(s);let selected=null, games=[], reminders=[]; const LINE_TARGET='line:U445402135b60f91b93a5ee7a92cba14c';
-const APP_BASE=location.pathname.startsWith('/baseball')?'/baseball':'';
-function apiUrl(path){ return `${APP_BASE}${path}`; }
+const APP_BASE='';
+const REMOTE_API_BASE='https://api.leokuo.com/cpbl';
+function apiUrl(path){
+  const clean=String(path||'').replace(/^\/api/,'');
+  return `${REMOTE_API_BASE}${clean}`;
+}
 window.addEventListener('error',e=>{ console.error(e.error||e.message); const st=$('#state'); if(st) st.innerHTML=`<span class="error">畫面錯誤：${e.message}</span>`; });
 window.addEventListener('unhandledrejection',e=>{ console.error(e.reason); const st=$('#state'); if(st) st.innerHTML=`<span class="error">畫面錯誤：${e.reason?.message||e.reason}</span>`; });
 function statusClass(g){ if(pauseReason(g)||isInningBreak(g)) return 'status break'; if(g.statusCode===2) return 'status live'; if(g.statusCode===3) return 'status final'; if(g.statusCode===1) return 'status pregame'; return 'status'; }
