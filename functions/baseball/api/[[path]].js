@@ -590,6 +590,9 @@ export async function onRequest(context) {
   const apiPath = url.pathname.replace(/^(?:\/baseball)?\/api/, "") || "/";
 
   try {
+    if (request.method === "GET" && apiPath === "/games" && url.searchParams.get("ping") === "1") {
+      return jsonResponse({ ok: true, status: "api alive", updatedAt: nowText() });
+    }
     if (request.method === "GET" && apiPath === "/games") {
       return jsonResponse(await fetchGames(env, url.searchParams.get("date") || "", url.searchParams.get("first") !== "0"));
     }
