@@ -21,6 +21,14 @@
 .hero.countdown-ring.soon .hero-runner { background: rgba(253, 230, 138, 0.9); box-shadow: 0 0 16px rgba(253, 230, 138, 0.9), 0 0 32px rgba(251, 191, 36, 0.6); }
 .hero.countdown-ring.urgent .hero-runner { background: rgba(254, 202, 202, 0.95); box-shadow: 0 0 20px rgba(254, 202, 202, 0.95), 0 0 36px rgba(239, 68, 68, 0.7); }
 
+/* Keep compact desktop panels inside their fixed dashboard rows. */
+.player-col.final-results{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr))}
+.player-col.final-results .bigbox{display:grid;grid-template-rows:auto minmax(0,1fr);align-items:center}
+.player-col.final-results .value{font-size:clamp(18px,2.3vh,26px);margin-top:0}
+.live-panel{grid-template-rows:repeat(2,minmax(0,1fr))}
+.diamond{width:clamp(78px,9vh,102px);height:clamp(66px,8vh,84px);margin-bottom:0}
+.base{width:28px;height:28px}
+
 /* Mobile layout */
 @media (max-width: 760px) {
   html,body{height:auto;min-height:100%;overflow-x:hidden;overflow-y:auto}
@@ -54,6 +62,7 @@
   .ticker{font-size:14px;padding:7px 8px;margin-top:4px}.extra-banner{font-size:22px;padding:8px}.bottom9-banner{font-size:16px}
   .game-body{display:grid;grid-template-columns:1fr 1fr;height:auto;gap:7px}
   .status-col,.player-col{grid-template-rows:none;grid-auto-rows:minmax(82px,auto);gap:7px}.player-col{grid-column:auto}
+  .player-col.final-results{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(76px,auto));grid-auto-rows:auto}
   .live-panel{grid-column:1 / -1;grid-row:auto;grid-template-columns:1fr 1fr;grid-template-rows:none;overflow:visible;min-height:130px}
   .bigbox{min-height:74px;padding:8px}.bigbox .value{font-size:18px}.inning-box .value{font-size:28px}.bigbox .value.multiline{font-size:14px}
   .diamond{width:94px;height:82px}.base{width:27px;height:27px}.sbo-row{grid-template-columns:28px 1fr 20px;gap:4px}.sbo-label,.sbo-num{font-size:18px}.dots{gap:4px}.dot{width:16px;height:16px}
@@ -392,7 +401,7 @@ function renderDetail(g,err){
       <div class="bigbox inning-box"><div class="label">局數 / 狀態</div><div class="value">${inning}</div></div>
       <div class="bigbox"><div class="label">9下 / 延長判斷</div><div class="value multiline">${bottom9Decision(g)}</div></div>
     </div>
-    <div class="player-col">${resultBoxes(g)}</div>
+    <div class="player-col${Number(g.statusCode)===3?' final-results':''}">${resultBoxes(g)}</div>
     <div class="live-panel">${livePanel(g)}</div>
   </div>
   <div class="bottom-feed">
