@@ -20,6 +20,54 @@
 .hero.countdown-ring.warm .hero-runner { background: rgba(147, 197, 253, 0.85); box-shadow: 0 0 14px rgba(147, 197, 253, 0.85), 0 0 28px rgba(96, 165, 250, 0.6); }
 .hero.countdown-ring.soon .hero-runner { background: rgba(253, 230, 138, 0.9); box-shadow: 0 0 16px rgba(253, 230, 138, 0.9), 0 0 32px rgba(251, 191, 36, 0.6); }
 .hero.countdown-ring.urgent .hero-runner { background: rgba(254, 202, 202, 0.95); box-shadow: 0 0 20px rgba(254, 202, 202, 0.95), 0 0 36px rgba(239, 68, 68, 0.7); }
+
+/* Mobile layout */
+@media (max-width: 760px) {
+  html,body{height:auto;min-height:100%;overflow-x:hidden;overflow-y:auto}
+  body{-webkit-text-size-adjust:100%;padding-bottom:env(safe-area-inset-bottom)}
+  .wrap{height:auto;min-height:100dvh;padding:10px max(10px,env(safe-area-inset-right)) calc(18px + env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));overflow:visible}
+  .top{display:flex;flex-direction:column;align-items:stretch;gap:8px;min-height:0;max-height:none;height:auto;overflow:visible;flex:none}
+  .board-title{font-size:20px}.version{font-size:11px}.sub{font-size:11px}
+  .controls{justify-content:flex-start;height:auto;min-height:44px;overflow-x:auto;overflow-y:hidden;padding:2px 1px 7px;contain:none;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .controls::-webkit-scrollbar,.reminder-bar::-webkit-scrollbar,.list::-webkit-scrollbar{display:none}
+  .controls>*{flex:0 0 auto}.clock{font-size:18px}input[type="date"]{width:118px;min-width:118px}
+  .custom-select-btn{min-width:104px;height:34px}.custom-menu{position:fixed;top:118px;right:10px;left:10px;max-height:55dvh}
+  .footer{margin:2px 0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .work-panel,.work-panel.show{height:auto;max-height:none;min-height:44px;overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap}
+  .work-status{min-width:220px}
+  .reminder-bar{height:auto;max-height:none;min-height:38px;overflow-x:auto;overflow-y:hidden;padding-bottom:5px;contain:none;flex:none;-webkit-overflow-scrolling:touch}
+  .reminders{overflow:visible;flex:0 0 auto}
+  .layout{display:flex;flex-direction:column;gap:8px;margin-top:4px;overflow:visible;min-height:0;flex:none}
+  .layout>.list{display:flex;order:0;gap:8px;overflow-x:auto;overflow-y:hidden;padding:8px;border-radius:14px;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
+  #games{display:flex;gap:8px;overflow:visible}
+  .venue-group{display:contents}.venue-title{display:none}.gamebtn{width:210px;min-width:210px;scroll-snap-align:start}
+  #detail{order:1;height:auto;overflow:visible;display:flex;flex-direction:column;gap:8px;padding:8px}
+  #detail.placeholder{min-height:180px;display:grid;place-items:center}
+  .hero{display:flex;flex-direction:column;height:auto;overflow:hidden;padding:9px;border-radius:16px}
+  .hero .meta{font-size:12px;align-items:flex-start}.info-row{gap:7px;flex-wrap:wrap}.info-item{font-size:12px}
+  .score-venue{font-size:14px;margin:3px 0}
+  .scoreboard{grid-template-columns:minmax(0,1fr) 48px minmax(0,1fr);gap:2px;padding:7px 3px;min-height:150px;margin-top:3px}
+  .scoreboard.live-game.offense-away::before{right:50%}.scoreboard.live-game.offense-home::before{left:50%}
+  .versus{display:grid;min-width:0;font-size:16px;align-content:center}.versus .countdown-chip{min-width:0;padding:5px 3px}.versus .countdown-chip .cd-num{font-size:13px}
+  .attack-anim{display:none}.club{padding:4px 2px;gap:3px}.team-role{font-size:10px;padding:2px 6px}
+  .club-name{font-size:clamp(13px,4vw,17px);gap:3px}.name-logo{width:24px;height:24px}.score-line{gap:5px}.score-logo{width:38px;height:38px}.club-score{font-size:clamp(42px,14vw,58px)}
+  .ticker{font-size:14px;padding:7px 8px;margin-top:4px}.extra-banner{font-size:22px;padding:8px}.bottom9-banner{font-size:16px}
+  .game-body{display:grid;grid-template-columns:1fr 1fr;height:auto;gap:7px}
+  .status-col,.player-col{grid-template-rows:none;grid-auto-rows:minmax(82px,auto);gap:7px}.player-col{grid-column:auto}
+  .live-panel{grid-column:1 / -1;grid-row:auto;grid-template-columns:1fr 1fr;grid-template-rows:none;overflow:visible;min-height:130px}
+  .bigbox{min-height:74px;padding:8px}.bigbox .value{font-size:18px}.inning-box .value{font-size:28px}.bigbox .value.multiline{font-size:14px}
+  .diamond{width:94px;height:82px}.base{width:27px;height:27px}.sbo-row{grid-template-columns:28px 1fr 20px;gap:4px}.sbo-label,.sbo-num{font-size:18px}.dots{gap:4px}.dot{width:16px;height:16px}
+  .bottom-feed{min-height:124px;overflow:visible}.bottom-feed .section{height:auto}.bottom-feed .report{height:auto;min-height:72px;max-height:none;padding-right:0;padding-bottom:38px;white-space:pre-wrap}.audience-corner{right:9px;bottom:9px;font-size:12px}
+  .calendar{width:calc(100vw - 20px);padding:12px;border-radius:18px;box-sizing:border-box}.cal-title{font-size:21px}.cal-grid{gap:4px}.cal-week{padding:5px 1px;font-size:12px}.cal-day{height:44px;border-radius:10px;font-size:15px}
+  .break-overlay .break-card{font-size:24px;padding:12px 16px;letter-spacing:.08em;text-align:center}
+}
+
+@media (max-width: 380px) {
+  .wrap{padding-left:7px;padding-right:7px}.card{border-radius:14px}
+  .scoreboard{grid-template-columns:minmax(0,1fr) 38px minmax(0,1fr)}
+  .name-logo,.score-logo{width:30px;height:30px}.club-score{font-size:42px}.club-name{font-size:13px}
+  .game-body{grid-template-columns:1fr}.player-col{grid-column:1}.live-panel{grid-column:1;grid-template-columns:1fr 1fr}
+}
 </style>
 </head>
 <body>
