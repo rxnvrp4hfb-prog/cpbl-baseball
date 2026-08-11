@@ -248,7 +248,15 @@ async function loadGames(force=true){
   try{const r=await fetch(apiUrl(`/api/games?first=${first}${date?`&date=${date}`:''}`),{cache:'no-store'});const data=await r.json();if(!data.ok)throw new Error(data.error);setApiStatus(true);games=data.games;$('#state').textContent=`場次已更新：${data.updatedAt}｜${games.length} 場`;$('#games').innerHTML=games.length?'':'<div class="card small">目前沒有抓到賽事。</div>'; if(games.length) renderList(); const exists=games.some(g=>g.id===selected); if((!selected||!exists)&&games[0]) selected=games[0].id; if(selected&&games.length) selectGame(selected); else renderList();}
   catch(e){setApiStatus(false); $('#state').innerHTML=`<span class="error">${e.message}</span>`}
 }
-async function silentRefresh(){ if(isQuietHours() || !selected || !games.length || navigator.onLine===false) return; await refreshSelectedGame(false, true); }
+let lastDetailFetchAt=0;
+async function silentRefresh(){
+  if(isQuietHours() || document.visibilityState==='hidden' || !selected || !games.length || navigator.onLine===false) return;
+  const g=games.find(x=>x.id===selected); if(!g)return;
+  const interval=Number(g.statusCode)===2?12000:Number(g.statusCode)===3?300000:60000;
+  if(Date.now()-lastDetailFetchAt<interval)return;
+  lastDetailFetchAt=Date.now();
+  await refreshSelectedGame(false,true);
+}
 let wasQuietHours=isQuietHours();
 function watchQuietHours(){ const quiet=isQuietHours(); if(quiet) showQuietHours(); else if(wasQuietHours) loadGames(false); wasQuietHours=quiet; }
 const COMMON_VENUES=['天母','大巨蛋','新莊','桃園','台中洲際','斗六','嘉義市','台南','亞太主','澄清湖','花蓮'];
@@ -261,7 +269,7 @@ function updateVenueFilter(){ const banned=new Set(['台北大巨蛋']); const v
 function filteredGames(){ const v=$('#venueFilter').value||'全部'; const lv=$('#levelFilter').value||'全部'; return games.filter(g=>(v==='全部'||(g.field||'球場未定')===v) && (lv==='全部'||g.kindCode===lv)); }
 function renderList(){ updateVenueFilter(); const shown=filteredGames(); $('#games').innerHTML=shown.length?shown.map(mini).join(''):'<div class="card small">這個場地沒有賽事。</div>'; }
 async function selectGame(id){ selected=id; saveViewState(); renderList(); await refreshSelectedGame(true); }
-async function refreshSelectedGame(showLoading=false, silent=false){ const g=games.find(x=>x.id===selected); if(!g){ if(!silent) alert('先選一場比賽'); return;} if(showLoading){ $('#detail').className='card'; $('#detail').innerHTML='詳細資料載入中…'; }
+async function refreshSelectedGame(showLoading=false, silent=false){ const g=games.find(x=>x.id===selected); if(!g){ if(!silent) alert('先選一場比賽'); return;} lastDetailFetchAt=Date.now(); if(showLoading){ $('#detail').className='card'; $('#detail').innerHTML='詳細資料載入中…'; }
   try{const r=await fetch(apiUrl(`/api/game?year=${g.year}&kindCode=${g.kindCode}&gameSno=${g.gameSno}&status=${g.statusCode}`),{cache:'no-store'});const data=await r.json();if(!data.ok)throw new Error(data.error);const detailField=(data.game.field && !/^F\d+$/i.test(String(data.game.field))) ? data.game.field : g.field;
 const merged={...g,...data.game, awayStarter:data.game.awayStarter||g.awayStarter, homeStarter:data.game.homeStarter||g.homeStarter, away:data.game.away||g.away, home:data.game.home||g.home, field:detailField, time:data.game.time||g.time, awayLogo:data.game.awayLogo||g.awayLogo, homeLogo:data.game.homeLogo||g.homeLogo, awayColor:data.game.awayColor||g.awayColor, homeColor:data.game.homeColor||g.homeColor};
 setApiStatus(true); updateApiDelay(merged.latestLogTime, merged);
@@ -423,7 +431,7 @@ $('#date').addEventListener('change',()=>{saveViewState();loadGames();});
 document.addEventListener('click',e=>{ if(!e.target.closest('#venueSelect')) $('#venueMenu')?.classList.remove('show'); if(!e.target.closest('#levelSelect')) $('#levelMenu')?.classList.remove('show'); });
 $('#workFile').addEventListener('change',async e=>{ const f=e.target.files[0]; if(!f)return; try{ if(f.type==='application/pdf'||f.name.toLowerCase().endsWith('.pdf')){ $('#workStatus').className='work-empty'; $('#workStatus').textContent='PDF 解析中…'; const fd=new FormData(); fd.append('file',f); const r=await fetch(apiUrl('/api/workflow/pdf'),{method:'POST',body:fd}); const data=await r.json(); if(!data.ok) throw new Error(data.error||'PDF 解析失敗'); workItems=(data.items||[]).map(x=>({date:x.date||'未分類',...x, minutes:parseTimeToMinutes(x.time)})).filter(x=>x.minutes!==null&&x.task).sort((a,b)=>a.minutes-b.minutes); updateWorkDateOptions(); saveWorkSchedule(); renderWorkStatus(); if(!workItems.length) alert('PDF 有解析成功，但沒有找到像 13:00 這種時間格式的流程項目。'); } else { parseWorkSchedule(await f.text(),f.name); } } catch(err){ alert(err.message); renderWorkStatus(); } e.target.value=''; });
 document.addEventListener('fullscreenchange',()=>{const on=!!document.fullscreenElement; const b=$('#fullscreenBtn'); b.innerHTML=`<span class="ui-ico ${on?'exit-fullscreen':'fullscreen'}"></span>`; b.title=on?'退出全螢幕':'全螢幕';});
-updateClock(); updateNetworkStatus(); updateBreakBtn(); pingApi(); window.addEventListener('online',()=>{updateNetworkStatus(); pingApi();}); window.addEventListener('offline',updateNetworkStatus); setInterval(updateClock,1000); setInterval(updateCountdowns,1000); setInterval(updateNetworkStatus,5000); setInterval(pingApi,15000); setInterval(watchQuietHours,30000); setInterval(renderWorkStatus,30000);
+updateClock(); updateNetworkStatus(); updateBreakBtn(); pingApi(); window.addEventListener('online',()=>{updateNetworkStatus(); pingApi();}); window.addEventListener('offline',updateNetworkStatus); setInterval(updateClock,1000); setInterval(updateCountdowns,1000); setInterval(updateNetworkStatus,5000); setInterval(()=>{if(document.visibilityState!=='hidden')pingApi();},60000); setInterval(watchQuietHours,30000); setInterval(renderWorkStatus,30000);
 loadReminders();
 loadGames(false); setInterval(silentRefresh,12000);
 </script>
