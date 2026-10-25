@@ -323,12 +323,24 @@ function syncReminderInning(g){ const input=$('#remindInning'); if(!input||!g) r
 function currentHalf(g){ const side=String(g.battingSide||''); if(side==='1'||side==='V') return 'top'; if(side==='2'||side==='H') return 'bottom'; return 'any'; }
 function reminderReached(g,r){ const nowInning=currentInningNumber(g), target=Number(r.targetInning); if(nowInning>target) return true; if(nowInning<target) return false; return !r.targetHalf || r.targetHalf==='any' || currentHalf(g)===r.targetHalf; }
 function checkReminders(g){ const nowInning=currentInningNumber(g); reminders.filter(r=>!r.sent&&r.gameId===g.id&&reminderReached(g,r)&&!browserNotifiedReminders.has(r.id)).forEach(async r=>{ browserNotifiedReminders.add(r.id); const msg=`CPBL提醒：${r.away} vs ${r.home} 已到 ${g.inningText||`第${nowInning}局`}（設定：第 ${r.targetInning} 局 ${halfLabel(r.targetHalf)}）`; if('Notification' in window && Notification.permission==='granted') new Notification('CPBL 局數提醒',{body:msg}); else alert(msg); r.sent=true; renderReminders(); try{ const res=await fetch(apiUrl('/api/reminders/sent'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:r.id})}); const data=await res.json(); if(data.ok){ reminders=data.reminders||reminders; renderReminders(); } }catch(e){} }); }
+let gamesLoadSequence=0, loadedGameDate=null;
+function sameGameDate(game,date){return !date || String(game.date||'').replaceAll('/','-').slice(0,10)===date;}
 async function loadGames(force=true){
   if(!force&&isQuietHours()){showQuietHours();return;}
-  $('#state').textContent='更新場次中…'; saveViewState();
-  const date=encodeURIComponent(cpblDate()), first='0';
-  try{const r=await fetch(apiUrl(`/api/games?first=${first}${date?`&date=${date}`:''}`),{cache:'no-store'});const data=await r.json();if(!data.ok)throw new Error(data.error);setApiStatus(true);games=data.games;$('#state').textContent=`場次已更新：${data.updatedAt}｜${games.length} 場`;$('#games').innerHTML=games.length?'':'<div class="card small">目前沒有抓到賽事。</div>'; if(games.length) renderList(); const exists=games.some(g=>g.id===selected); if((!selected||!exists)&&games[0]) selected=games[0].id; if(selected&&games.length) selectGame(selected); else renderList();}
-  catch(e){setApiStatus(false); $('#state').innerHTML=`<span class="error">${e.message}</span>`}
+  const chosenDate=$('#date').value, request=++gamesLoadSequence;
+  if(loadedGameDate!==chosenDate){games=[];selected='';$('#games').innerHTML='';$('#detail').innerHTML='載入所選日期賽事中…';loadedGameDate=chosenDate;}
+  $('#state').textContent='更新場次中…';saveViewState();
+  const date=encodeURIComponent(cpblDate());
+  try{
+    const r=await fetch(apiUrl(`/api/games?first=0${date?`&date=${date}`:''}`),{cache:'no-store'});const data=await r.json();
+    if(request!==gamesLoadSequence||chosenDate!==$('#date').value)return;
+    if(!data.ok)throw new Error(data.error);
+    setApiStatus(true);games=(data.games||[]).filter(game=>sameGameDate(game,chosenDate));
+    $('#state').textContent=`場次已更新：${data.updatedAt}｜${games.length} 場`;renderList();
+    if(!games.some(g=>g.id===selected))selected=games[0]?.id||'';
+    if(selected)await selectGame(selected);
+    else{$('#detail').className='card';$('#detail').textContent=chosenDate?`${chosenDate.replaceAll('-','/')} 沒有賽事`:'目前沒有賽事';}
+  }catch(e){if(request===gamesLoadSequence&&chosenDate===$('#date').value){setApiStatus(false);$('#state').textContent=e.message;}}
 }
 let lastDetailFetchAt=0;
 async function silentRefresh(){
@@ -348,11 +360,11 @@ function updateLevelFilter(){ const value=localStorage.getItem('cpbl-level')||$(
 function setVenue(v){ $('#venueFilter').value=v; $('#venueSelect .custom-select-btn').textContent=v==='全部'?'全部場地':v; localStorage.setItem('cpbl-venue',v); $('#venueMenu').classList.remove('show'); renderList(); const shown=filteredGames(); if(shown.length && !shown.some(g=>g.id===selected)) selectGame(shown[0].id); }
 function toggleVenueMenu(){ $('#venueMenu').classList.toggle('show'); }
 function updateVenueFilter(){ const banned=new Set(['台北大巨蛋']); const venues=[...new Set([...COMMON_VENUES,...games.map(g=>g.field||'球場未定')])].filter(v=>!banned.has(v)); const prev=localStorage.getItem('cpbl-venue')||$('#venueFilter').value||'全部'; const value=venues.includes(prev)?prev:'全部'; $('#venueFilter').value=value; $('#venueSelect .custom-select-btn').textContent=value==='全部'?'全部場地':value; $('#venueMenu').innerHTML=['全部',...venues].map(v=>`<button type="button" class="custom-option ${v===value?'active':''}" onclick="setVenue('${v}')">${v==='全部'?'全部場地':v}</button>`).join(''); }
-function filteredGames(){ const v=$('#venueFilter').value||'全部'; const lv=$('#levelFilter').value||'全部'; return games.filter(g=>(v==='全部'||(g.field||'球場未定')===v) && (lv==='全部'||g.kindCode===lv)); }
-function renderList(){ updateVenueFilter(); const shown=filteredGames(); $('#games').innerHTML=shown.length?shown.map(mini).join(''):'<div class="card small">這個場地沒有賽事。</div>'; }
+function filteredGames(){ const v=$('#venueFilter').value||'全部'; const lv=$('#levelFilter').value||'全部'; return games.filter(g=>(v==='全部'||(g.field||'球場未定')===v) && (lv==='全部'||(lv==='A'?['A','B','C'].includes(g.kindCode):g.kindCode===lv))); }
+function renderList(){ updateVenueFilter(); const shown=filteredGames(); $('#games').innerHTML=shown.length?shown.map(mini).join(''):`<div class="card small">${games.length?'目前篩選條件沒有賽事。':'所選日期沒有賽事。'}</div>`; }
 async function selectGame(id){ selected=id; saveViewState(); renderList(); await refreshSelectedGame(true); }
-async function refreshSelectedGame(showLoading=false, silent=false){ const g=games.find(x=>x.id===selected); if(!g){ if(!silent) alert('先選一場比賽'); return;} lastDetailFetchAt=Date.now(); if(showLoading){ $('#detail').className='card'; $('#detail').innerHTML='詳細資料載入中…'; }
-  try{const r=await fetch(apiUrl(`/api/game?year=${g.year}&kindCode=${g.kindCode}&gameSno=${g.gameSno}&status=${g.statusCode}`),{cache:'no-store'});const data=await r.json();if(!data.ok)throw new Error(data.error);const detailField=(data.game.field && !/^F\d+$/i.test(String(data.game.field))) ? data.game.field : g.field;
+async function refreshSelectedGame(showLoading=false, silent=false){ const g=games.find(x=>x.id===selected); if(!g){ if(!silent) alert('先選一場比賽'); return;} const detailDate=$('#date').value; lastDetailFetchAt=Date.now(); if(showLoading){ $('#detail').className='card'; $('#detail').innerHTML='詳細資料載入中…'; }
+  try{const r=await fetch(apiUrl(`/api/game?year=${g.year}&kindCode=${g.kindCode}&gameSno=${g.gameSno}&status=${g.statusCode}`),{cache:'no-store'});const data=await r.json();if(selected!==g.id||detailDate!==$('#date').value||!games.some(item=>item.id===g.id))return;if(!data.ok)throw new Error(data.error);const detailField=(data.game.field && !/^F\d+$/i.test(String(data.game.field))) ? data.game.field : g.field;
 const merged={...g,...data.game, awayStarter:data.game.awayStarter||g.awayStarter, homeStarter:data.game.homeStarter||g.homeStarter, away:data.game.away||g.away, home:data.game.home||g.home, field:detailField, time:data.game.time||g.time, awayLogo:data.game.awayLogo||g.awayLogo, homeLogo:data.game.homeLogo||g.homeLogo, awayColor:data.game.awayColor||g.awayColor, homeColor:data.game.homeColor||g.homeColor};
 setApiStatus(true); updateApiDelay(merged.latestLogTime, merged);
 games=games.map(x=>x.id===merged.id?{...x,...merged}:x);
@@ -377,7 +389,7 @@ if (isCountdownPregame(merged) && isCountdownPregame(g)) {
 try{ updateMiniGame(merged); if(uiChanged || showLoading || !document.querySelector('#detail .hero')) { renderDetail(merged); } $('#state').textContent=`比賽數據已更新：${data.updatedAt}`; }
 catch(renderErr){ console.error(renderErr); if(!silent) $('#state').innerHTML=`<span class="error">畫面渲染錯誤：${renderErr.message}</span>`; }
 }
-  catch(e){ if(!silent){ setApiStatus(false); renderDetail(g, e.message); } }
+  catch(e){ if(!silent&&selected===g.id&&detailDate===$('#date').value){ setApiStatus(false); renderDetail(g, e.message); } }
 }
 function firstLines(s,n=10){return (s||'').split('\n').filter(Boolean).slice(0,n).join('\n')}
 function liveValue(v,fallback='—'){ return v===null||v===undefined||v===''?fallback:v; }
