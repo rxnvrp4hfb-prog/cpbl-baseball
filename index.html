@@ -147,6 +147,35 @@
 <script>
 const $=s=>document.querySelector(s);let selected=null, games=[], reminders=[]; const LINE_TARGET='line:U445402135b60f91b93a5ee7a92cba14c';
 const API_BASE='https://api.leokuo.com/cpbl';
+let seasonClosed=false;
+const seasonFetch=window.fetch.bind(window);
+function showSeasonClosed(){
+ if(document.getElementById('seasonClosed'))return;
+ const overlay=document.createElement('section');overlay.id='seasonClosed';overlay.setAttribute('aria-label','休季公告');
+ overlay.innerHTML='<div><p style="letter-spacing:.2em;color:#96cdb7">CPBL LIVE BOARD</p><h1 style="font-size:clamp(30px,6vw,52px);margin:20px 0">休季中</h1><p style="color:#b7bdc8">本站暫停開放，賽季開始後再見。</p></div>';
+ overlay.style.cssText='position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;background:#17191e;color:#f2f3f5;text-align:center;padding:24px';
+ for(const element of document.body.children){if(!['SCRIPT','STYLE'].includes(element.tagName))element.inert=true;}
+ document.body.append(overlay);document.body.style.overflow='hidden';
+}
+async function checkSeason(){
+ try{const response=await seasonFetch(API_BASE+'/season',{cache:'no-store',signal:AbortSignal.timeout(6000)});if(!response.ok)return !seasonClosed;const state=await response.json();
+ if(state.enabled===false){seasonClosed=true;showSeasonClosed();return false;}
+ if(seasonClosed){location.reload();return false;}return true;
+ }catch{return !seasonClosed;}
+}
+const seasonReady=checkSeason();
+window.fetch=async(input,options)=>{
+ const url=typeof input==='string'?input:input instanceof URL?input.href:input.url;
+ if(url.startsWith(API_BASE)&&!url.startsWith(API_BASE+'/season')){
+  await seasonReady;
+  if(seasonClosed)return new Response(JSON.stringify({ok:false,seasonDisabled:true,error:'休季中，已停止查詢'}),{status:503,headers:{'Content-Type':'application/json'}});
+  const response=await seasonFetch(input,options);
+  if(response.status===503){const state=await response.clone().json().catch(()=>({}));if(state.seasonDisabled){seasonClosed=true;showSeasonClosed();}}
+  return response;
+ }return seasonFetch(input,options);
+};
+setInterval(checkSeason,60000);
+
 function apiUrl(path){ return `${API_BASE}${String(path).replace(/^\/api/,'')}`; }
 window.addEventListener('error',e=>{ console.error(e.error||e.message); const st=$('#state'); if(st) st.innerHTML=`<span class="error">畫面錯誤：${e.message}</span>`; });
 window.addEventListener('unhandledrejection',e=>{ console.error(e.reason); const st=$('#state'); if(st) st.innerHTML=`<span class="error">畫面錯誤：${e.reason?.message||e.reason}</span>`; });
